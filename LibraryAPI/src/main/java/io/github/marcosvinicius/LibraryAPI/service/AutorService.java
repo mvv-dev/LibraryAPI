@@ -1,7 +1,9 @@
 package io.github.marcosvinicius.LibraryAPI.service;
 
+import io.github.marcosvinicius.LibraryAPI.controller.dto.ErroSimples;
 import io.github.marcosvinicius.LibraryAPI.controller.dto.ResponseCadastroAutorDTO;
 import io.github.marcosvinicius.LibraryAPI.controller.mapper.AutorMapper;
+import io.github.marcosvinicius.LibraryAPI.exceptions.RegistroDuplicadoException;
 import io.github.marcosvinicius.LibraryAPI.model.Autor;
 import io.github.marcosvinicius.LibraryAPI.repository.AutorRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,17 @@ public class AutorService {
 
     public ResponseCadastroAutorDTO cadastrar(Autor autor) {
 
+        Autor autorProcurado = repository.findByNomeAndDataNascimentoAndNacionalidade(autor.getNome(),
+                autor.getDataNascimento(), autor.getNacionalidade()).orElse(null);
+
+        // Validação de autores duplicados
+
+        if (autorProcurado != null) {
+
+            throw new RegistroDuplicadoException("Registro Duplicado, já existe um autor com esses dados!");
+
+        }
+
         repository.save(autor);
         return mapper.toResponseCadastroAutorDTO(autor);
 
@@ -36,6 +49,8 @@ public class AutorService {
 
     public void deletarPorId(String id) {
 
+        // Adicionar o erro de não poder excluir autores com livros cadastrados
+
         repository.deleteById(UUID.fromString(id));
 
     }
@@ -44,7 +59,20 @@ public class AutorService {
 
         var autorEncotrado = repository.findById(UUID.fromString(id));
 
+        // Validação de atualização de um registro duplicado
+
+
         if (autorEncotrado.isPresent()) {
+
+            var autorJaExistente = repository.findByNomeAndDataNascimentoAndNacionalidade(
+                    autor.getNome(), autor.getDataNascimento(), autor.getNacionalidade()
+            );
+
+            if (autorJaExistente.isPresent()) {
+
+                throw new RegistroDuplicadoException("Registro Duplicado, já existe um autor com esses dados!");
+
+            }
 
             autorEncotrado.get().setNome(autor.getNome());
             autorEncotrado.get().setDataNascimento(autor.getDataNascimento());

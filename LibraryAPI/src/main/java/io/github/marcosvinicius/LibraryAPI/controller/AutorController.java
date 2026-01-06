@@ -6,6 +6,7 @@ import io.github.marcosvinicius.LibraryAPI.controller.mapper.AutorMapper;
 import io.github.marcosvinicius.LibraryAPI.model.Autor;
 import io.github.marcosvinicius.LibraryAPI.service.AutorService;
 import jakarta.servlet.Servlet;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
@@ -20,22 +21,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/autores")
 @RequiredArgsConstructor
-public class AutorController {
+public class AutorController implements GenericController {
 
     private final AutorService service;
     private final AutorMapper mapper;
 
     @PostMapping
-    public ResponseEntity<ResponseCadastroAutorDTO> cadastrar(@RequestBody CadastroAutorDTO autorDTO) {
+    public ResponseEntity<ResponseCadastroAutorDTO> cadastrar(@RequestBody @Valid CadastroAutorDTO autorDTO) {
 
         var autor = mapper.toEntity(autorDTO);
         var responseCadastroDto = service.cadastrar(autor);
 
-        URI location = ServletUriComponentsBuilder  // Uri Location
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(autor.getId())
-                .toUri();
+        URI location = gerarHeaderLocation(autor.getId());
 
 
         return ResponseEntity.created(location).body(responseCadastroDto);
@@ -43,7 +40,7 @@ public class AutorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseCadastroAutorDTO> buscarSimples(@PathVariable String id) {
+    public ResponseEntity<ResponseCadastroAutorDTO> buscaSimples(@PathVariable String id) {
 
         var autor = service.buscarPorId(id);
         ResponseCadastroAutorDTO responseDTO = mapper.toResponseCadastroAutorDTO(autor);
@@ -54,7 +51,7 @@ public class AutorController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable String id) {
+    public ResponseEntity<Void> deletar(@PathVariable("id") String id) {
 
         service.deletarPorId(id);
 
@@ -63,7 +60,7 @@ public class AutorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> atualizar(@RequestBody CadastroAutorDTO autorDTO, @PathVariable String id) {
+    public ResponseEntity<Void> atualizar(@RequestBody @Valid CadastroAutorDTO autorDTO, @PathVariable String id) {
 
         service.atualizarPorId(id, mapper.toEntity(autorDTO));
         return ResponseEntity.noContent().build();
