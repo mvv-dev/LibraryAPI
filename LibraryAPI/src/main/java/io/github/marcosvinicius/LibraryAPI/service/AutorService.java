@@ -1,15 +1,15 @@
 package io.github.marcosvinicius.LibraryAPI.service;
 
-import io.github.marcosvinicius.LibraryAPI.controller.dto.ErroSimples;
 import io.github.marcosvinicius.LibraryAPI.controller.dto.ResponseCadastroAutorDTO;
 import io.github.marcosvinicius.LibraryAPI.controller.mapper.AutorMapper;
+import io.github.marcosvinicius.LibraryAPI.exceptions.ItemNotFoundException;
+import io.github.marcosvinicius.LibraryAPI.exceptions.OperacaoNaoPermitda;
 import io.github.marcosvinicius.LibraryAPI.exceptions.RegistroDuplicadoException;
 import io.github.marcosvinicius.LibraryAPI.model.Autor;
 import io.github.marcosvinicius.LibraryAPI.repository.AutorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,15 +43,34 @@ public class AutorService {
 
     public Autor buscarPorId(String id) {
 
-        return repository.findById(UUID.fromString(id)).orElse(null);
+
+        var autor = repository.findById(UUID.fromString(id)).orElse(null);
+        if (autor != null) {
+            return autor;
+        } else {
+            throw new ItemNotFoundException("Não existe um autor com esse ID");
+        }
 
     }
 
     public void deletarPorId(String id) {
 
-        // Adicionar o erro de não poder excluir autores com livros cadastrados
+        // Adicionar o erro de não poder excluir autores com livros cadastrados + not found
 
-        repository.deleteById(UUID.fromString(id));
+        var autor = repository.findById(UUID.fromString(id)).orElse(null);
+
+        if (autor != null) {
+
+            if (!autor.getLivros().isEmpty()) {
+                throw new OperacaoNaoPermitda("Não é possível excluir um autor com livros cadastrados.");
+            }
+            repository.deleteById(UUID.fromString(id));
+
+        } else {
+            throw new ItemNotFoundException("Não existe um autor com esse ID");
+        }
+
+
 
     }
 
@@ -59,10 +78,13 @@ public class AutorService {
 
         var autorEncotrado = repository.findById(UUID.fromString(id));
 
-        // Validação de atualização de um registro duplicado
+        if (autorEncotrado.isEmpty()) {
 
+            throw new ItemNotFoundException("Não existe um autor com esse ID");
 
-        if (autorEncotrado.isPresent()) {
+        } else {
+
+            // Validação de atualização de um registro duplicado
 
             var autorJaExistente = repository.findByNomeAndDataNascimentoAndNacionalidade(
                     autor.getNome(), autor.getDataNascimento(), autor.getNacionalidade()
@@ -80,6 +102,7 @@ public class AutorService {
             repository.save(autorEncotrado.get());
 
         }
+
 
 
 

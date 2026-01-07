@@ -3,6 +3,9 @@ package io.github.marcosvinicius.LibraryAPI.exceptionHandler;
 import io.github.marcosvinicius.LibraryAPI.controller.dto.ErroCampos;
 import io.github.marcosvinicius.LibraryAPI.controller.dto.ErroSimples;
 import io.github.marcosvinicius.LibraryAPI.controller.dto.ErroUnprocessableEntity;
+import io.github.marcosvinicius.LibraryAPI.exceptions.IllegalArgumentException;
+import io.github.marcosvinicius.LibraryAPI.exceptions.ItemNotFoundException;
+import io.github.marcosvinicius.LibraryAPI.exceptions.OperacaoNaoPermitda;
 import io.github.marcosvinicius.LibraryAPI.exceptions.RegistroDuplicadoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +22,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RegistroDuplicadoException.class)
     public ResponseEntity<ErroSimples> handleRegistroDuplicadoException(RegistroDuplicadoException e) {
 
-       var erroSimplesConflito = ErroSimples.conflito();
+       var erroSimplesConflito = new ErroSimples(HttpStatus.CONFLICT.value(), e.getMessage());
 
-       return ResponseEntity.status(erroSimplesConflito.code()).body(erroSimplesConflito);
+       return ResponseEntity.status(erroSimplesConflito.status()).body(erroSimplesConflito);
 
    }
 
@@ -41,6 +44,20 @@ public class GlobalExceptionHandler {
 
    }
 
+   @ExceptionHandler(IllegalArgumentException.class)
+   public ResponseEntity<ErroSimples> handleCampoInvalidoException(IllegalArgumentException e) {
+
+        ErroSimples erroSimples = new ErroSimples(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        return ResponseEntity.badRequest().body(erroSimples);
+
+   }
+
+   @ExceptionHandler(ItemNotFoundException.class)
+   public ResponseEntity<ErroSimples> handleItemNotFound(ItemNotFoundException e) {
+        ErroSimples erroSimples = new ErroSimples(HttpStatus.NOT_FOUND.value(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erroSimples);
+   }
+
    @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErroSimples> handleDefaultErros(RuntimeException e) {
 
@@ -49,6 +66,12 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.internalServerError().body(erroSimplesDto);
 
+   }
+
+   @ExceptionHandler(OperacaoNaoPermitda.class)
+    public ResponseEntity<ErroSimples> handleOperacaoNaoPermitida(OperacaoNaoPermitda e) {
+        ErroSimples erroSimplesDto = new ErroSimples(HttpStatus.CONFLICT.value(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erroSimplesDto);
    }
 
 }

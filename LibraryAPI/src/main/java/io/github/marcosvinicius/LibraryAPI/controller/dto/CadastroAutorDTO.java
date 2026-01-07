@@ -10,7 +10,6 @@ import java.time.LocalDate;
 public record CadastroAutorDTO(
 
         @NotBlank(message = "Campo Obrigatório")
-        @NotNull(message = "Campo Obrigatório")
         @Size(max = 100, message = "Campo excede 100 caracteres")
         String nome,
         @NotNull(message = "Campo Obrigatório")

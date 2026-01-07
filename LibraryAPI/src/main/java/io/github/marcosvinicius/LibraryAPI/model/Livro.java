@@ -5,41 +5,52 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table
 @Data
-@EntityListeners(AuditingEntityListener.class) // permite auditoria
-public class Autor {
+@EntityListeners(AuditingEntityListener.class)
+public class Livro {
 
     @Id
+    @Column
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column
-    private String nome;
-
-    @Column(name = "data_nascimento")
-    private LocalDate dataNascimento;
+    private String isbn;
 
     @Column
-    private String nacionalidade;
+    private String titulo;
+
+    @Column(name = "data_publicacao")
+    private LocalDate dataPublicacao;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Genero genero;
+
+    @Column
+    private BigDecimal preco;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_autor")
+    private Autor autor;
 
     @Column(name = "data_cadastro")
-    @CreatedDate // Insere a data atual a cada persist
+    @CreatedDate
     private LocalDateTime dataCadastro;
 
     @Column(name = "data_ultima_atualizacao")
-    @LastModifiedDate // Insere a data atual a cada update
+    @LastModifiedDate
     private LocalDateTime dataUltimaAtualizacao;
 
-    @OneToMany(mappedBy = "autor") // A relação autor -> livro já é mapeada do outro lado, no atributo autor de Livro.
-    private List<Livro> livros;
 
 
 
