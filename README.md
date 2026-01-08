@@ -17,10 +17,62 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 * Spring Boot
 * Spring Web
 * Spring Data JPA
+* Spring Security
+* JWT (Auth0 Java JWT)
 * PostgreSQL
 * MapStruct (DTO ↔ Entity)
 * Lombok
 * Auditoria JPA (`@CreatedDate`, `@LastModifiedDate`)
+
+---
+
+## 🔐 Segurança
+
+A API está protegida com **Spring Security** usando **autenticação local (login/senha)** e **autorização via token JWT (stateless)**.
+
+### Como funciona (visão prática)
+
+1. O usuário envia `login` e `password` em `POST /auth/login`
+2. Se as credenciais estiverem corretas, a API retorna um **JWT**
+3. Nas rotas protegidas, o cliente envia o token no header:
+
+```http
+Authorization: Bearer <token>
+```
+
+4. A cada requisição, um **Security Filter** valida o token e popula o `SecurityContext` (usuário + authorities/roles)
+5. As permissões (roles) são aplicadas conforme as regras abaixo
+
+### Roles e regras de negócio
+
+Roles existentes:
+
+* `GERENTE`
+* `OPERADOR`
+
+Regras:
+
+* **Somente GERENTE** pode: **cadastrar/atualizar/remover Autores** e **cadastrar usuários**
+* **GERENTE e OPERADOR** podem: **cadastrar/atualizar/remover Livros**
+* **Ambos** podem consultar (GET) Autores e Livros (desde que autenticados)
+
+Resumo por endpoint:
+
+**Autenticação**
+- `POST /auth/login` — público
+- `POST /auth/register` — **apenas GERENTE** (rota protegida)
+
+**Autores**
+- `POST /autores` — **GERENTE**
+- `PUT /autores/{id}` — **GERENTE**
+- `DELETE /autores/{id}` — **GERENTE**
+- `GET /autores` e `GET /autores/{id}` — autenticado (GERENTE/OPERADOR)
+
+**Livros**
+- `POST /livros` — **GERENTE/OPERADOR**
+- `PUT /livros/{id}` — **GERENTE/OPERADOR**
+- `DELETE /livros/{id}` — **GERENTE/OPERADOR**
+- `GET /livros` e `GET /livros/{id}` — autenticado (GERENTE/OPERADOR)
 
 ---
 
@@ -47,6 +99,59 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
   ]
 }
 ```
+
+---
+
+# Autenticação
+
+## Login
+
+**POST /auth/login**
+
+```json
+{
+  "login": "string",
+  "password": "string"
+}
+```
+
+**Sucesso — 200 OK**
+
+```json
+{
+  "token": "jwt-token"
+}
+```
+
+**Erros**
+
+* 401 — Credenciais inválidas / usuário inexistente
+* 422 — Erro de validação
+
+---
+
+## Cadastro de Usuário
+
+> **Somente GERENTE** pode cadastrar usuários (rota protegida).
+
+**POST /auth/register**
+
+```json
+{
+  "login": "string",
+  "password": "string",
+  "role": "GERENTE | OPERADOR"
+}
+```
+
+**Sucesso — 200 OK**
+
+**Erros**
+
+* 401 — Não autenticado
+* 403 — Sem permissão
+* 422 — Erro de validação
+* 409 — Login já existente
 
 ---
 
@@ -77,6 +182,8 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 ### 1. Cadastrar Autor
 
+> **Permissão:** apenas `GERENTE`
+
 **POST /autores**
 
 ```json
@@ -103,6 +210,8 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 **Erros**
 
+* 401 — Não autenticado
+* 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — Autor duplicado
 
@@ -126,6 +235,7 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 **Erro**
 
+* 401 — Não autenticado
 * 404 — Autor não encontrado
 
 ---
@@ -148,9 +258,15 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 ]
 ```
 
+**Erros**
+
+* 401 — Não autenticado
+
 ---
 
 ### 4. Atualizar Autor
+
+> **Permissão:** apenas `GERENTE`
 
 **PUT /autores/{id}**
 
@@ -166,6 +282,8 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 **Erros**
 
+* 401 — Não autenticado
+* 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — Autor duplicado
 * 404 — Autor não encontrado
@@ -174,12 +292,16 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 ### 5. Remover Autor
 
+> **Permissão:** apenas `GERENTE`
+
 **DELETE /autores/{id}**
 
 **Sucesso — 204 No Content**
 
 **Erros**
 
+* 401 — Não autenticado
+* 403 — Sem permissão
 * 404 — Autor não encontrado
 * 409 — Autor possui livros cadastrados
 
@@ -194,7 +316,7 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 * Não permitir data de publicação futura
 * Gêneros permitidos:
 
-    * FICCAO, FANTASIA, MISTERIO, ROMANCE, BIOGRAFIA, CIENCIA, AVENTURA, TERROR, RELIGIOSO, AUTOAJUDA
+  * FICCAO, FANTASIA, MISTERIO, ROMANCE, BIOGRAFIA, CIENCIA, AVENTURA, TERROR, RELIGIOSO, AUTOAJUDA
 
 ### Campos
 
@@ -217,6 +339,8 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 ---
 
 ### 1. Cadastrar Livro
+
+> **Permissão:** `GERENTE` e `OPERADOR`
 
 **POST /livros**
 
@@ -254,6 +378,8 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 **Erros**
 
+* 401 — Não autenticado
+* 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — ISBN duplicado
 * 400 — Autor inexistente
@@ -285,6 +411,7 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 **Erro**
 
+* 401 — Não autenticado
 * 404 — Livro não encontrado
 
 ---
@@ -314,9 +441,15 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 ]
 ```
 
+**Erros**
+
+* 401 — Não autenticado
+
 ---
 
 ### 4. Atualizar Livro
+
+> **Permissão:** `GERENTE` e `OPERADOR`
 
 **PUT /livros/{id}**
 
@@ -335,6 +468,8 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 **Erros**
 
+* 401 — Não autenticado
+* 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — ISBN duplicado
 * 404 — Livro não encontrado
@@ -344,10 +479,14 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 
 ### 5. Remover Livro
 
+> **Permissão:** `GERENTE` e `OPERADOR`
+
 **DELETE /livros/{id}**
 
 **Sucesso — 204 No Content**
 
 **Erro**
 
+* 401 — Não autenticado
+* 403 — Sem permissão
 * 404 — Livro não encontrado

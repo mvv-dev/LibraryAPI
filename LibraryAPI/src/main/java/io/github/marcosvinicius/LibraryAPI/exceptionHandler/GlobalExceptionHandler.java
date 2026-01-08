@@ -9,6 +9,8 @@ import io.github.marcosvinicius.LibraryAPI.exceptions.OperacaoNaoPermitda;
 import io.github.marcosvinicius.LibraryAPI.exceptions.RegistroDuplicadoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -72,6 +74,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroSimples> handleOperacaoNaoPermitida(OperacaoNaoPermitda e) {
         ErroSimples erroSimplesDto = new ErroSimples(HttpStatus.CONFLICT.value(), e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(erroSimplesDto);
+   }
+
+   @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErroSimples> handleUsernameNotFoundException(UsernameNotFoundException e) {
+        ErroSimples erroSimplesDto = new ErroSimples(HttpStatus.UNAUTHORIZED.value(),
+                e.getMessage());
+
+        return ResponseEntity.status(erroSimplesDto.status()).body(erroSimplesDto);
+   }
+
+   @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErroSimples> handleBadCredentialsException(BadCredentialsException e) {
+        ErroSimples erroSimplesDto = new ErroSimples(HttpStatus.UNAUTHORIZED.value(),
+                "Erro! Credenciais inválidas");
+
+        return ResponseEntity.status(erroSimplesDto.status()).body(erroSimplesDto);
    }
 
 }
