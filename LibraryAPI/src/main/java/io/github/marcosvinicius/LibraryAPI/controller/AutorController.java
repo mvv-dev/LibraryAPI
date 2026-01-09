@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.Servlet;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/autores")
 @RequiredArgsConstructor
 @Tag(name = "Autores")
+@Slf4j // Acesso ao objeto log do lombok
 public class AutorController implements GenericController {
 
     private final AutorService service;
@@ -41,8 +43,13 @@ public class AutorController implements GenericController {
     })
     public ResponseEntity<ResponseCadastroAutorDTO> cadastrar(@RequestBody @Valid CadastroAutorDTO autorDTO) {
 
+
+        log.info("Tentativa de cadastro de autor: Nome: {}", autorDTO.nome());
+
         var autor = mapper.toEntity(autorDTO);
         var responseCadastroDto = service.cadastrar(autor);
+
+        log.info("Autor cadastrado com sucesso: Nome: {}", autorDTO.nome());
 
         URI location = gerarHeaderLocation(autor.getId());
 
@@ -60,8 +67,12 @@ public class AutorController implements GenericController {
     })
     public ResponseEntity<ResponseCadastroAutorDTO> buscaSimples(@PathVariable String id) {
 
+        log.info("Tentativa de busca por ID (Autor) | ID: {}", id);
+
         var autor = service.buscarPorId(id);
         ResponseCadastroAutorDTO responseDTO = mapper.toResponseCadastroAutorDTO(autor);
+
+        log.info("Busca realizado com sucesso | Autor: {}", autor.getNome());
 
         return ResponseEntity.ok().body(responseDTO);
 
@@ -78,7 +89,9 @@ public class AutorController implements GenericController {
     })
     public ResponseEntity<Void> deletar(@PathVariable("id") String id) {
 
+        log.warn("Tentativa de delatar autor | id: {} ", id);
         service.deletarPorId(id);
+        log.info("Autor deletado com sucesso!");
 
         return ResponseEntity.noContent().build();
 
@@ -95,7 +108,10 @@ public class AutorController implements GenericController {
     })
     public ResponseEntity<Void> atualizar(@RequestBody @Valid CadastroAutorDTO autorDTO, @PathVariable String id) {
 
+        log.warn("Tentativa de atualizar autor | id: {} ", id);
         service.atualizarPorId(id, mapper.toEntity(autorDTO));
+        log.info("Autor atualizado com sucesso");
+
         return ResponseEntity.noContent().build();
 
     }
@@ -108,6 +124,8 @@ public class AutorController implements GenericController {
     public ResponseEntity<List<ResponseCadastroAutorDTO>> buscarPorNomeNacionalidade(
             @RequestParam(value = "nome", required = false) String nome,
             @RequestParam(value = "nacionalidade", required = false) String nacionaliade) {
+
+        log.info("Iniciando pesquisa de autor");
 
         return ResponseEntity.ok().body(
                 service.buscarPorNomeNacionalidade(nome, nacionaliade).stream().map(

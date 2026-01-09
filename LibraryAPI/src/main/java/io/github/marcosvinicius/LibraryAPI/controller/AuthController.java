@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("auth")
 @RequiredArgsConstructor
 @Tag(name = "Autenticação")
+@Slf4j
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -42,12 +44,15 @@ public class AuthController {
     @SecurityRequirements
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid UserLoginDTO userLoginDTO) {
 
+        log.info("Tentativa de login | login = {}", userLoginDTO.login());
+
         // Spring, tente autenticar esse usuário com esse login e essa senha
         var usernamePassword = new UsernamePasswordAuthenticationToken(userLoginDTO.login(),
                 userLoginDTO.password());
 
         var auth = authenticationManager.authenticate(usernamePassword);
         var token = tokenService.generateToken((User) auth.getPrincipal());
+        log.info("Login OK | login = {} | role = {}", ((User) auth.getPrincipal()).getLogin(), ((User) auth.getPrincipal()).getAuthorities());
 
         return ResponseEntity.ok(new LoginResponseDTO(token));
 
@@ -65,7 +70,9 @@ public class AuthController {
     })
     public ResponseEntity<Void> register(@RequestBody @Valid UserRegisterDTO userRegisterDTO) {
 
+        log.info("Tentativa de cadastro de usuário | : {} ", userRegisterDTO.login());
         userService.register(userRegisterDTO);
+        log.info("Cadastro Ok | login: {}  | role = {}", userRegisterDTO.login(), userRegisterDTO.role());
 
         return ResponseEntity.ok().build();
 

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ import java.util.List;
 @RequestMapping("livros")
 @RequiredArgsConstructor
 @Tag(name = "Livros")
+@Slf4j
 public class LivroController implements GenericController{
 
     private final LivroService service;
@@ -37,9 +39,10 @@ public class LivroController implements GenericController{
     })
     public ResponseEntity<ResponseCadastroLivroDTO> cadastrar(@RequestBody @Valid CadastroLivroDTO cadastroLivroDTO) {
 
+        log.info("Tentativa de cadastro de livro | ISBN: {}", cadastroLivroDTO.isbn());
         var livroCadastrado = service.cadastrar(cadastroLivroDTO);
+        log.info("Livro cadastrado com sucesso | ISBN: {}", cadastroLivroDTO.isbn());
         URI location = gerarHeaderLocation(livroCadastrado.getId());
-
         ResponseCadastroLivroDTO responseCadastroDto = mapper.entityToReponseCadastroLivroDto(livroCadastrado);
 
         return ResponseEntity.created(location).body(responseCadastroDto);
@@ -55,7 +58,9 @@ public class LivroController implements GenericController{
     })
     public ResponseEntity<ResponseCadastroLivroDTO> buscarPorId(@PathVariable("id") String id) {
 
+        log.info("Tentativa de busca de livro | id: {}", id);
         ResponseCadastroLivroDTO response = service.buscarPorId(id);
+        log.info("Busca bem sucedida | id: {}", id);
 
         return ResponseEntity.ok().body(response);
 
@@ -69,7 +74,11 @@ public class LivroController implements GenericController{
             @ApiResponse(responseCode = "403", description = "Usuário não tem permissão"),
     })
     public ResponseEntity<Void> deletarPorId(@PathVariable("id") String id) {
+
+        log.warn("Tentativa de deletar Livro | id: {}", id);
         service.deletar(id);
+        log.info("Livro deletado com sucesso | id: {}", id);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -86,6 +95,8 @@ public class LivroController implements GenericController{
             @RequestParam(value = "ano_publicacao", required = false) Integer anoPublicacao,
             @RequestParam(value = "genero", required = false) Genero genero) {
 
+        log.info("Tentativa de busca de livro por parâmetros");
+
         List<Livro> listaLivro = service.buscarPorParametros(
                 isbn, titulo, nomeAutor, anoPublicacao, genero
         );
@@ -94,6 +105,8 @@ public class LivroController implements GenericController{
                 .stream()
                 .map(mapper::entityToReponseCadastroLivroDto)
                 .toList();
+
+        log.info("Busca de livros bem sucedida");
 
         return ResponseEntity.ok().body(listaReponse);
 
@@ -111,7 +124,9 @@ public class LivroController implements GenericController{
     })
     public ResponseEntity<Void> atualizarPorId(@RequestBody @Valid CadastroLivroDTO livroDTO, @PathVariable("id") String id) {
 
+        log.warn("Tentativa de atualizar livro | id: {}", id);
         service.atualizarPorId(id, livroDTO);
+        log.info("Livro atualizado com sucesso");
 
         return ResponseEntity.noContent().build();
 
