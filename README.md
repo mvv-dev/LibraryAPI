@@ -8,6 +8,29 @@ O projeto contempla dois módulos principais:
 * **Livros**
 
 Toda a API segue boas práticas REST, com validações de negócio, códigos HTTP apropriados e padronização de respostas de erro.
+## Documentação da API (Swagger / OpenAPI)
+
+A aplicação conta com documentação interativa gerada via **Swagger OpenAPI**, permitindo:
+
+* Visualização completa dos endpoints disponíveis
+* Descrição de payloads de requisição e resposta
+* Códigos de status HTTP retornados
+* Regras de autenticação e autorização por role
+* Testes diretos dos endpoints protegidos
+
+A documentação reflete fielmente as regras de segurança da aplicação, incluindo autenticação baseada em **JWT (Bearer Token)**.
+
+### Autenticação no Swagger
+
+Os endpoints protegidos exigem um **token JWT válido**.
+
+Fluxo para autenticação na documentação:
+
+1. Realizar login no endpoint `POST /auth/login`
+2. Copiar o token JWT retornado na resposta
+3. Informar o token no Swagger utilizando o formato: Bearer token
+
+Após a autenticação, os endpoints protegidos poderão ser testados normalmente, respeitando as permissões definidas para cada role.
 
 ---
 
@@ -18,6 +41,7 @@ Toda a API segue boas práticas REST, com validações de negócio, códigos HTT
 * Spring Web
 * Spring Data JPA
 * Spring Security
+* Swagger OpenAPI (springdoc-openapi)
 * JWT (Auth0 Java JWT)
 * PostgreSQL
 * MapStruct (DTO ↔ Entity)
@@ -125,7 +149,7 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Credenciais inválidas / usuário inexistente
+* 401 — Credenciais inválidas
 * 422 — Erro de validação
 
 ---
@@ -148,7 +172,7 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
+
 * 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — Login já existente
@@ -210,7 +234,7 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
+
 * 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — Autor duplicado
@@ -235,7 +259,7 @@ Resumo por endpoint:
 
 **Erro**
 
-* 401 — Não autenticado
+* 403 — Sem permissão
 * 404 — Autor não encontrado
 
 ---
@@ -260,7 +284,7 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
+* 403 — Sem permissão
 
 ---
 
@@ -282,7 +306,6 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
 * 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — Autor duplicado
@@ -300,7 +323,6 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
 * 403 — Sem permissão
 * 404 — Autor não encontrado
 * 409 — Autor possui livros cadastrados
@@ -378,7 +400,6 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
 * 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — ISBN duplicado
@@ -411,7 +432,7 @@ Resumo por endpoint:
 
 **Erro**
 
-* 401 — Não autenticado
+* 403 — Sem permissão
 * 404 — Livro não encontrado
 
 ---
@@ -443,7 +464,7 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
+* 403 — Sem permissão
 
 ---
 
@@ -468,7 +489,6 @@ Resumo por endpoint:
 
 **Erros**
 
-* 401 — Não autenticado
 * 403 — Sem permissão
 * 422 — Erro de validação
 * 409 — ISBN duplicado
@@ -487,6 +507,5 @@ Resumo por endpoint:
 
 **Erro**
 
-* 401 — Não autenticado
 * 403 — Sem permissão
 * 404 — Livro não encontrado
