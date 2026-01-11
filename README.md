@@ -1,6 +1,26 @@
 # LibraryAPI
 
-API REST para gerenciamento de uma livraria, desenvolvida com **Spring Boot** e **PostgreSQL**.
+API REST para gerenciamento de uma livraria, desenvolvida com **Spring Boot**, **PostgreSQL** e **Spring Security (JWT)**.
+
+✅ Autenticação JWT (Bearer Token)  
+✅ Autorização baseada em Roles (`GERENTE`, `OPERADOR`)  
+✅ Swagger OpenAPI  
+✅ Dockerizada  
+✅ Deploy em produção na AWS (EC2 + RDS PostgreSQL)
+
+## Execução com Docker
+
+A aplicação é totalmente **dockerizada** e a imagem está disponível no Docker Hub:
+
+- `mvih/libraryapi`
+
+## Deploy na AWS
+
+A aplicação foi implantada em ambiente cloud utilizando:
+
+- **AWS EC2** rodando Docker
+- **AWS RDS PostgreSQL**
+- **Security Groups** configurados para acesso controlado
 
 O projeto contempla dois módulos principais:
 
@@ -20,33 +40,36 @@ A aplicação conta com documentação interativa gerada via **Swagger OpenAPI**
 
 A documentação reflete fielmente as regras de segurança da aplicação, incluindo autenticação baseada em **JWT (Bearer Token)**.
 
-### Autenticação no Swagger
-
-Os endpoints protegidos exigem um **token JWT válido**.
-
-Fluxo para autenticação na documentação:
-
-1. Realizar login no endpoint `POST /auth/login`
-2. Copiar o token JWT retornado na resposta
-3. Informar o token no Swagger utilizando o formato: Bearer token
-
-Após a autenticação, os endpoints protegidos poderão ser testados normalmente, respeitando as permissões definidas para cada role.
-
 ---
 
 ## Tecnologias
 
-* Java 17
-* Spring Boot
-* Spring Web
-* Spring Data JPA
-* Spring Security
-* Swagger OpenAPI (springdoc-openapi)
-* JWT (Auth0 Java JWT)
-* PostgreSQL
-* MapStruct (DTO ↔ Entity)
-* Lombok
-* Auditoria JPA (`@CreatedDate`, `@LastModifiedDate`)
+### Backend
+- Java 17
+- Spring Boot
+- Spring Web (REST)
+
+### Persistência
+- PostgreSQL
+- Spring Data JPA (Hibernate)
+- Auditoria JPA (`@CreatedDate`, `@LastModifiedDate`)
+
+### Segurança
+- Spring Security
+- JWT (Auth0 Java JWT)
+
+### Documentação
+- Swagger OpenAPI (springdoc-openapi)
+
+### Produtividade
+- MapStruct (DTO ↔ Entity)
+- Lombok
+
+### Deploy / Infra
+- Docker (Dockerfile multi-stage build)
+- AWS EC2 (deploy)
+- AWS RDS (PostgreSQL)
+
 
 ---
 
@@ -100,29 +123,7 @@ Resumo por endpoint:
 
 ---
 
-## Como executar o projeto (local)
-
-### Pré-requisitos
-
-* Java 17+
-* Maven
-* PostgreSQL rodando localmente
-
----
-
 # Contratos da API
-
-## Padrão de Erro
-
-```json
-{
-  "status": 422,
-  "mensagem": "Erro de validação",
-  "erros": [
-    { "campo": "titulo", "mensagem": "Campo obrigatório" }
-  ]
-}
-```
 
 ---
 
