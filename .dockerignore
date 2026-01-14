@@ -1,0 +1,16 @@
+# build output
+**/target/
+*.jar
+*.log
+
+# ide
+.idea/
+*.iml
+
+# git
+.git/
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
